@@ -8,3 +8,4 @@ config ARCH_SUNXI
 	select SPARSE_IRQ
 	select SUNXI_TIMER
 	select PINCTRL_SUNXI
+	select ARCH_HAS_CPUFREQ
