@@ -41,7 +41,7 @@ struct clk_factors {
 	u8 nlen;
 	u8 p;
 	u8 plen;
-	const struct clk_factor_table *table;
+	void (*get_factors)(u32 *rate, u8 *n, u8 *k, u8 *m, u8 *p);
 	spinlock_t *lock;
 };
 
@@ -53,21 +53,6 @@ struct clk_factors {
 
 #define FACTOR_SET(bit, len, reg, val) \
 	(((reg) & CLRMASK(len, bit)) | (val << (bit)))
-
-static const struct clk_factor_table *_get_table_factors(const struct
-							 clk_factor_table
-							 *table,
-							 unsigned long int val)
-{
-	const struct clk_factor_table *clkt;
-
-	for (clkt = table; clkt->val; clkt++)
-		if (clkt->val > val)
-			return --clkt;
-
-	/* val was too high, return the max we can do */
-	return --clkt;
-}
 
 static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 					     unsigned long parent_rate)
@@ -83,8 +68,8 @@ static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 	/* Get each individual factor */
 	n = FACTOR_GET(factors->n, factors->nlen, reg);
 	k = FACTOR_GET(factors->k, factors->klen, reg);
-	p = FACTOR_GET(factors->p, factors->plen, reg);
 	m = FACTOR_GET(factors->m, factors->mlen, reg);
+	p = FACTOR_GET(factors->p, factors->plen, reg);
 
 	/* Calculate the rate */
 	rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
@@ -96,22 +81,20 @@ static long clk_factors_round_rate(struct clk_hw *hw, unsigned long rate,
 				   unsigned long *parent_rate)
 {
 	struct clk_factors *factors = to_clk_factors(hw);
-	const struct clk_factor_table *value;
+	factors->get_factors((u32 *)&rate, NULL, NULL, NULL, NULL);
 
-	value = _get_table_factors(factors->table, rate);
-
-	return value->val;
+	return rate;
 }
 
 static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 				unsigned long parent_rate)
 {
+	u8 n, k, m, p;
 	u32 reg;
 	struct clk_factors *factors = to_clk_factors(hw);
-	const struct clk_factor_table *value;
 	unsigned long flags = 0;
 
-	value = _get_table_factors(factors->table, rate);
+	factors->get_factors((u32 *)&rate, &n, &k, &m, &p);
 
 	if (factors->lock)
 		spin_lock_irqsave(factors->lock, flags);
@@ -120,10 +103,10 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg = readl(factors->reg);
 
 	/* Set up the new factors */
-	reg = FACTOR_SET(factors->m, factors->mlen, reg, value->m);
-	reg = FACTOR_SET(factors->k, factors->klen, reg, value->k);
-	reg = FACTOR_SET(factors->n, factors->nlen, reg, value->n);
-	reg = FACTOR_SET(factors->p, factors->plen, reg, value->p);
+	reg = FACTOR_SET(factors->n, factors->nlen, reg, n);
+	reg = FACTOR_SET(factors->k, factors->klen, reg, k);
+	reg = FACTOR_SET(factors->m, factors->mlen, reg, m);
+	reg = FACTOR_SET(factors->p, factors->plen, reg, p);
 
 	/* Apply them now */
 	writel(reg, factors->reg);
@@ -144,7 +127,7 @@ static const struct clk_ops clk_factors_ops = {
 };
 
 /**
- * clk_register_factors - register a table based factors clock with
+ * clk_register_factors - register a factors clock with
  * the clock framework
  * @dev: device registering this clock
  * @name: name of this clock
@@ -154,7 +137,7 @@ static const struct clk_ops clk_factors_ops = {
  * @m, k, n, p: position of factors n, k, n, p on the bitfield
  * @mlen, klen, nlen, plen: length of the factors m, k, n, p
  * @clk_factors_flags: factors-specific flags for this clock
- * @table: array of factors/value pairs ending with a val set to 0
+ * @get_factors: function to calculate the factors for a given frequency
  * @lock: shared register lock for this clock
  */
 struct clk *clk_register_factors(struct device *dev, const char *name,
@@ -162,7 +145,7 @@ struct clk *clk_register_factors(struct device *dev, const char *name,
 				 unsigned long flags, void __iomem *reg,
 				 u8 m, u8 mlen, u8 k, u8 klen, u8 n,
 				 u8 nlen, u8 p, u8 plen,
-				 const struct clk_factor_table *table,
+				 void (*get_factors)(u32 *rate, u8 *n, u8 *k, u8 *m, u8 *p),
 				 spinlock_t *lock)
 {
 	struct clk_factors *factors;
@@ -194,7 +177,7 @@ struct clk *clk_register_factors(struct device *dev, const char *name,
 	factors->plen = plen;
 	factors->lock = lock;
 	factors->hw.init = &init;
-	factors->table = table;
+	factors->get_factors = get_factors;
 
 	/* register the clock */
 	clk = clk_register(dev, &factors->hw);
