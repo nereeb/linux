@@ -29,17 +29,27 @@ static DEFINE_SPINLOCK(clk_lock);
  * sunxi_divider_clk_setup() - Setup function for simple divider clocks
  */
 
-#define SUNXI_AXI_DIV		0
-#define SUNXI_AXI_2N		0
-#define SUNXI_AHB_DIV		4
-#define SUNXI_AHB_2N		1
-#define SUNXI_APB0_DIV		8
-#define SUNXI_APB0_2N		1
 #define SUNXI_DIVISOR_WIDTH	2
 
-static const __initconst u32 axi_data[2] = {SUNXI_AXI_DIV, SUNXI_AXI_2N};
-static const __initconst u32 ahb_data[2] = {SUNXI_AHB_DIV, SUNXI_AHB_2N};
-static const __initconst u32 apb0_data[2] = {SUNXI_APB0_DIV, SUNXI_APB0_2N};
+struct div_data {
+	u8 div;
+	u8 pow;
+};
+
+static const __initconst struct div_data axi_data = {
+	.div = 0,
+	.pow = 0,
+};
+
+static const __initconst struct div_data ahb_data = {
+	.div = 4,
+	.pow = 1,
+};
+
+static const __initconst struct div_data apb0_data = {
+	.div = 8,
+	.pow = 1,
+};
 
 static void __init sunxi_divider_clk_setup(struct device_node *node, u32 shift,
 					   u32 power_of_two)
@@ -209,22 +219,22 @@ static void __init sunxi_pll1_clk_setup(struct device_node *node)
 }
 
 static const __initconst struct of_device_id clk_div_match[] = {
-	{.compatible = "allwinner,sunxi-axi-clk", .data = axi_data,},
-	{.compatible = "allwinner,sunxi-ahb-clk", .data = ahb_data,},
-	{.compatible = "allwinner,sunxi-apb0-clk", .data = apb0_data,},
+	{.compatible = "allwinner,sunxi-axi-clk", .data = &axi_data,},
+	{.compatible = "allwinner,sunxi-ahb-clk", .data = &ahb_data,},
+	{.compatible = "allwinner,sunxi-apb0-clk", .data = &apb0_data,},
 	{}
 };
 
 static void __init sunxi_divider_clock_setup(void)
 {
 	struct device_node *np;
-	const u32 *data;
+	const struct div_data *data;
 
 	for_each_matching_node(np, clk_div_match) {
 		const struct of_device_id *match =
 			of_match_node(clk_div_match, np);
 		data = match->data;
-		sunxi_divider_clk_setup(np, data[0], data[1]);
+		sunxi_divider_clk_setup(np, data->div, data->pow);
 	}
 }
 
