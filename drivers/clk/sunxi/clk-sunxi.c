@@ -194,6 +194,17 @@ static void sunxi_get_pll1_factors(u32 *freq, u8 *n, u8 *k, u8 *m, u8 *p)
 #define SUNXI_PLL1_P_SHIFT	16
 #define SUNXI_PLL1_P_WIDTH	2
 
+struct clk_factors_config pll1_config = {
+	.n = 8,
+	.nlen = 5,
+	.k = 4,
+	.klen = 2,
+	.m = 0,
+	.mlen = 2,
+	.p = 16,
+	.plen = 2,
+};
+
 static void __init sunxi_pll1_clk_setup(struct device_node *node)
 {
 	struct clk *clk;
@@ -206,11 +217,8 @@ static void __init sunxi_pll1_clk_setup(struct device_node *node)
 	clk_parent = of_clk_get_parent_name(node, 0);
 
 	clk = clk_register_factors(NULL, clk_name, clk_parent, CLK_IGNORE_UNUSED,
-				   reg, SUNXI_PLL1_N_SHIFT, SUNXI_PLL1_N_WIDTH,
-				   SUNXI_PLL1_K_SHIFT, SUNXI_PLL1_K_WIDTH,
-				   SUNXI_PLL1_M_SHIFT, SUNXI_PLL1_M_WIDTH,
-				   SUNXI_PLL1_P_SHIFT, SUNXI_PLL1_P_WIDTH,
-				   sunxi_get_pll1_factors, &clk_lock);
+				   reg, &pll1_config, sunxi_get_pll1_factors,
+				   &clk_lock);
 
 	if (clk) {
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);

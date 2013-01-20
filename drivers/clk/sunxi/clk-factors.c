@@ -33,14 +33,7 @@
 struct clk_factors {
 	struct clk_hw hw;
 	void __iomem *reg;
-	u8 m;
-	u8 mlen;
-	u8 k;
-	u8 klen;
-	u8 n;
-	u8 nlen;
-	u8 p;
-	u8 plen;
+	struct clk_factors_config *config;
 	void (*get_factors)(u32 *rate, u8 *n, u8 *k, u8 *m, u8 *p);
 	spinlock_t *lock;
 };
@@ -61,15 +54,16 @@ static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 	u32 reg;
 	unsigned long rate;
 	struct clk_factors *factors = to_clk_factors(hw);
+	struct clk_factors_config *config = factors->config;
 
 	/* Fetch the register value */
 	reg = readl(factors->reg);
 
 	/* Get each individual factor */
-	n = FACTOR_GET(factors->n, factors->nlen, reg);
-	k = FACTOR_GET(factors->k, factors->klen, reg);
-	m = FACTOR_GET(factors->m, factors->mlen, reg);
-	p = FACTOR_GET(factors->p, factors->plen, reg);
+	n = FACTOR_GET(config->n, config->nlen, reg);
+	k = FACTOR_GET(config->k, config->klen, reg);
+	m = FACTOR_GET(config->m, config->mlen, reg);
+	p = FACTOR_GET(config->p, config->plen, reg);
 
 	/* Calculate the rate */
 	rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
@@ -92,6 +86,7 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	u8 n, k, m, p;
 	u32 reg;
 	struct clk_factors *factors = to_clk_factors(hw);
+	struct clk_factors_config *config = factors->config;
 	unsigned long flags = 0;
 
 	factors->get_factors((u32 *)&rate, &n, &k, &m, &p);
@@ -103,10 +98,10 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg = readl(factors->reg);
 
 	/* Set up the new factors */
-	reg = FACTOR_SET(factors->n, factors->nlen, reg, n);
-	reg = FACTOR_SET(factors->k, factors->klen, reg, k);
-	reg = FACTOR_SET(factors->m, factors->mlen, reg, m);
-	reg = FACTOR_SET(factors->p, factors->plen, reg, p);
+	reg = FACTOR_SET(config->n, config->nlen, reg, n);
+	reg = FACTOR_SET(config->k, config->klen, reg, k);
+	reg = FACTOR_SET(config->m, config->mlen, reg, m);
+	reg = FACTOR_SET(config->p, config->plen, reg, p);
 
 	/* Apply them now */
 	writel(reg, factors->reg);
@@ -143,8 +138,7 @@ static const struct clk_ops clk_factors_ops = {
 struct clk *clk_register_factors(struct device *dev, const char *name,
 				 const char *parent_name,
 				 unsigned long flags, void __iomem *reg,
-				 u8 m, u8 mlen, u8 k, u8 klen, u8 n,
-				 u8 nlen, u8 p, u8 plen,
+				 struct clk_factors_config *config,
 				 void (*get_factors)(u32 *rate, u8 *n, u8 *k, u8 *m, u8 *p),
 				 spinlock_t *lock)
 {
@@ -167,14 +161,7 @@ struct clk *clk_register_factors(struct device *dev, const char *name,
 
 	/* struct clk_factors assignments */
 	factors->reg = reg;
-	factors->m = m;
-	factors->mlen = mlen;
-	factors->k = k;
-	factors->klen = klen;
-	factors->n = n;
-	factors->nlen = nlen;
-	factors->p = p;
-	factors->plen = plen;
+	factors->config = config;
 	factors->lock = lock;
 	factors->hw.init = &init;
 	factors->get_factors = get_factors;
