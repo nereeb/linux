@@ -60,10 +60,10 @@ static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 	reg = readl(factors->reg);
 
 	/* Get each individual factor */
-	n = FACTOR_GET(config->n, config->nlen, reg);
-	k = FACTOR_GET(config->k, config->klen, reg);
-	m = FACTOR_GET(config->m, config->mlen, reg);
-	p = FACTOR_GET(config->p, config->plen, reg);
+	n = FACTOR_GET(config->nshift, config->nwidth, reg);
+	k = FACTOR_GET(config->kshift, config->kwidth, reg);
+	m = FACTOR_GET(config->mshift, config->mwidth, reg);
+	p = FACTOR_GET(config->pshift, config->pwidth, reg);
 
 	/* Calculate the rate */
 	rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
@@ -98,10 +98,10 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg = readl(factors->reg);
 
 	/* Set up the new factors */
-	reg = FACTOR_SET(config->n, config->nlen, reg, n);
-	reg = FACTOR_SET(config->k, config->klen, reg, k);
-	reg = FACTOR_SET(config->m, config->mlen, reg, m);
-	reg = FACTOR_SET(config->p, config->plen, reg, p);
+	reg = FACTOR_SET(config->nshift, config->nwidth, reg, n);
+	reg = FACTOR_SET(config->kshift, config->kwidth, reg, k);
+	reg = FACTOR_SET(config->mshift, config->mwidth, reg, m);
+	reg = FACTOR_SET(config->pshift, config->pwidth, reg, p);
 
 	/* Apply them now */
 	writel(reg, factors->reg);

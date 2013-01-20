@@ -5,14 +5,14 @@
 #include <linux/clkdev.h>
 
 struct clk_factors_config {
-	u8 n;
-	u8 nlen;
-	u8 k;
-	u8 klen;
-	u8 m;
-	u8 mlen;
-	u8 p;
-	u8 plen;
+	u8 nshift;
+	u8 nwidth;
+	u8 kshift;
+	u8 kwidth;
+	u8 mshift;
+	u8 mwidth;
+	u8 pshift;
+	u8 pwidth;
 };
 
 struct clk *clk_register_factors(struct device *dev, const char *name,

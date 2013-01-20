@@ -185,24 +185,15 @@ static void sunxi_get_pll1_factors(u32 *freq, u8 *n, u8 *k, u8 *m, u8 *p)
  * sunxi_pll1_clk_setup() - Setup function for PLL1 clock
  */
 
-#define SUNXI_PLL1_N_SHIFT	8
-#define SUNXI_PLL1_N_WIDTH	5
-#define SUNXI_PLL1_K_SHIFT	4
-#define SUNXI_PLL1_K_WIDTH	2
-#define SUNXI_PLL1_M_SHIFT	0
-#define SUNXI_PLL1_M_WIDTH	2
-#define SUNXI_PLL1_P_SHIFT	16
-#define SUNXI_PLL1_P_WIDTH	2
-
 struct clk_factors_config pll1_config = {
-	.n = 8,
-	.nlen = 5,
-	.k = 4,
-	.klen = 2,
-	.m = 0,
-	.mlen = 2,
-	.p = 16,
-	.plen = 2,
+	.nshift = 8,
+	.nwidth = 5,
+	.kshift = 4,
+	.kwidth = 2,
+	.mshift = 0,
+	.mwidth = 2,
+	.pshift = 16,
+	.pwidth = 2,
 };
 
 static void __init sunxi_pll1_clk_setup(struct device_node *node)
