@@ -112,17 +112,17 @@ static void __init sunxi_cpu_clk_setup(struct device_node *node)
 {
 	struct clk *clk;
 	const char *clk_name = node->name;
-	const char **clk_parents = kmalloc(sizeof(char *) * 5, GFP_KERNEL);
+	const char **parents = kmalloc(sizeof(char *) * 5, GFP_KERNEL);
 	void *reg;
 	int i = 0;
 
 	reg = of_iomap(node, 0);
 
-	while (i < 5 && (clk_parents[i] = of_clk_get_parent_name(node, i)) != NULL)
+	while (i < 5 && (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
 		i++;
 
-	clk = clk_register_mux(NULL, clk_name, clk_parents,
-			       i, 0, reg, SUNXI_CPU_GATE, SUNXI_CPU_GATE_WIDTH,
+	clk = clk_register_mux(NULL, clk_name, parents, i, 0, reg,
+			       SUNXI_CPU_GATE, SUNXI_CPU_GATE_WIDTH,
 			       0, &clk_lock);
 
 	if (clk) {
@@ -200,14 +200,14 @@ static void __init sunxi_pll1_clk_setup(struct device_node *node)
 {
 	struct clk *clk;
 	const char *clk_name = node->name;
-	const char *clk_parent;
+	const char *parent;
 	void *reg;
 
 	reg = of_iomap(node, 0);
 
-	clk_parent = of_clk_get_parent_name(node, 0);
+	parent = of_clk_get_parent_name(node, 0);
 
-	clk = clk_register_factors(NULL, clk_name, clk_parent, CLK_IGNORE_UNUSED,
+	clk = clk_register_factors(NULL, clk_name, parent, CLK_IGNORE_UNUSED,
 				   reg, &pll1_config, sunxi_get_pll1_factors,
 				   &clk_lock);
 
@@ -231,7 +231,7 @@ static void __init sunxi_divider_clock_setup(void)
 
 	for_each_matching_node(np, clk_div_match) {
 		const struct of_device_id *match =
-			of_match_node(clk_div_match, np);
+		    of_match_node(clk_div_match, np);
 		data = match->data;
 		sunxi_divider_clk_setup(np, data->div, data->pow);
 	}

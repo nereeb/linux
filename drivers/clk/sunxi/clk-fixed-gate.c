@@ -34,11 +34,11 @@
 
 struct clk_fixed_gate {
 	struct clk_hw hw;
-	void __iomem	*reg;
-	u8		bit_idx;
-	unsigned long	fixed_rate;
-	u8		flags;
-	spinlock_t	*lock;
+	u8            bit_idx;
+	u8            flags;
+	unsigned long fixed_rate;
+	void __iomem  *reg;
+	spinlock_t    *lock;
 };
 
 #define to_clk_fixed_gate(_hw) container_of(_hw, struct clk_fixed_gate, hw)
@@ -90,7 +90,7 @@ static int clk_fixed_gate_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long clk_fixed_gate_recalc_rate(struct clk_hw *hw,
-		unsigned long parent_rate)
+						unsigned long parent_rate)
 {
 	return to_clk_fixed_gate(hw)->fixed_rate;
 }
@@ -115,9 +115,10 @@ static const struct clk_ops clk_fixed_gate_ops = {
  * @lock: shared register lock for this clock
  */
 struct clk *clk_register_fixed_gate(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		void __iomem *reg, u8 bit_idx, unsigned long fixed_rate,
-		spinlock_t *lock)
+				    const char *parent_name,
+				    unsigned long flags, void __iomem *reg,
+				    u8 bit_idx, unsigned long fixed_rate,
+				    spinlock_t *lock)
 {
 	struct clk_fixed_gate *gate;
 	struct clk *clk;
