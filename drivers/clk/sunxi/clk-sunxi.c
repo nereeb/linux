@@ -26,54 +26,6 @@
 static DEFINE_SPINLOCK(clk_lock);
 
 /**
- * sunxi_divider_clk_setup() - Setup function for simple divider clocks
- */
-
-#define SUNXI_DIVISOR_WIDTH	2
-
-struct div_data {
-	u8 div;
-	u8 pow;
-};
-
-static const __initconst struct div_data axi_data = {
-	.div = 0,
-	.pow = 0,
-};
-
-static const __initconst struct div_data ahb_data = {
-	.div = 4,
-	.pow = 1,
-};
-
-static const __initconst struct div_data apb0_data = {
-	.div = 8,
-	.pow = 1,
-};
-
-static void __init sunxi_divider_clk_setup(struct device_node *node, u32 shift,
-					   u32 power_of_two)
-{
-	struct clk *clk;
-	const char *clk_name = node->name;
-	const char *clk_parent;
-	void *reg;
-
-	reg = of_iomap(node, 0);
-
-	clk_parent = of_clk_get_parent_name(node, 0);
-
-	clk = clk_register_divider(NULL, clk_name, clk_parent, 0,
-				   reg, shift, SUNXI_DIVISOR_WIDTH,
-				   power_of_two ? CLK_DIVIDER_POWER_OF_TWO : 0,
-				   &clk_lock);
-	if (clk) {
-		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
-}
-
-/**
  * sunxi_osc_clk_setup() - Setup function for gatable oscillator
  */
 
@@ -101,35 +53,7 @@ static void __init sunxi_osc_clk_setup(struct device_node *node)
 	}
 }
 
-/**
- * sunxi_cpu_clk_setup() - Setup function for CPU mux
- */
 
-#define SUNXI_CPU_GATE		16
-#define SUNXI_CPU_GATE_WIDTH	2
-
-static void __init sunxi_cpu_clk_setup(struct device_node *node)
-{
-	struct clk *clk;
-	const char *clk_name = node->name;
-	const char **parents = kmalloc(sizeof(char *) * 5, GFP_KERNEL);
-	void *reg;
-	int i = 0;
-
-	reg = of_iomap(node, 0);
-
-	while (i < 5 && (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
-		i++;
-
-	clk = clk_register_mux(NULL, clk_name, parents, i, 0, reg,
-			       SUNXI_CPU_GATE, SUNXI_CPU_GATE_WIDTH,
-			       0, &clk_lock);
-
-	if (clk) {
-		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
-}
 
 /**
  * sunxi_get_pll1_factors() - calculates n, k, m, p factors for PLL1
@@ -137,6 +61,7 @@ static void __init sunxi_cpu_clk_setup(struct device_node *node)
  * rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
  * parent_rate is always 24Mhz
  */
+
 static void sunxi_get_pll1_factors(u32 *freq, u8 *n, u8 *k, u8 *m, u8 *p)
 {
 	u8 div;
@@ -217,6 +142,99 @@ static void __init sunxi_pll1_clk_setup(struct device_node *node)
 	}
 }
 
+
+
+/**
+ * sunxi_cpu_clk_setup() - Setup function for CPU mux
+ */
+
+#define SUNXI_CPU_GATE		16
+#define SUNXI_CPU_GATE_WIDTH	2
+
+static void __init sunxi_cpu_clk_setup(struct device_node *node)
+{
+	struct clk *clk;
+	const char *clk_name = node->name;
+	const char **parents = kmalloc(sizeof(char *) * 5, GFP_KERNEL);
+	void *reg;
+	int i = 0;
+
+	reg = of_iomap(node, 0);
+
+	while (i < 5 && (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
+		i++;
+
+	clk = clk_register_mux(NULL, clk_name, parents, i, 0, reg,
+			       SUNXI_CPU_GATE, SUNXI_CPU_GATE_WIDTH,
+			       0, &clk_lock);
+
+	if (clk) {
+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+		clk_register_clkdev(clk, clk_name, NULL);
+	}
+}
+
+
+
+/**
+ * sunxi_divider_clk_setup() - Setup function for simple divider clocks
+ */
+
+#define SUNXI_DIVISOR_WIDTH	2
+
+struct div_data {
+	u8 div;
+	u8 pow;
+};
+
+static const __initconst struct div_data axi_data = {
+	.div = 0,
+	.pow = 0,
+};
+
+static const __initconst struct div_data ahb_data = {
+	.div = 4,
+	.pow = 1,
+};
+
+static const __initconst struct div_data apb0_data = {
+	.div = 8,
+	.pow = 1,
+};
+
+static void __init sunxi_divider_clk_setup(struct device_node *node, u32 shift,
+					   u32 power_of_two)
+{
+	struct clk *clk;
+	const char *clk_name = node->name;
+	const char *clk_parent;
+	void *reg;
+
+	reg = of_iomap(node, 0);
+
+	clk_parent = of_clk_get_parent_name(node, 0);
+
+	clk = clk_register_divider(NULL, clk_name, clk_parent, 0,
+				   reg, shift, SUNXI_DIVISOR_WIDTH,
+				   power_of_two ? CLK_DIVIDER_POWER_OF_TWO : 0,
+				   &clk_lock);
+	if (clk) {
+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+		clk_register_clkdev(clk, clk_name, NULL);
+	}
+}
+
+
+/* Matches for of_clk_init */
+static const __initconst struct of_device_id clk_match[] = {
+	{.compatible = "fixed-clock", .data = of_fixed_clk_setup,},
+	{.compatible = "allwinner,sunxi-osc-clk", .data = sunxi_osc_clk_setup,},
+	{.compatible = "allwinner,sunxi-pll1-clk", .data = sunxi_pll1_clk_setup,},
+	{.compatible = "allwinner,sunxi-cpu-clk", .data = sunxi_cpu_clk_setup,},
+	{}
+};
+
+/* Matches for divider clocks */
 static const __initconst struct of_device_id clk_div_match[] = {
 	{.compatible = "allwinner,sunxi-axi-clk", .data = &axi_data,},
 	{.compatible = "allwinner,sunxi-ahb-clk", .data = &ahb_data,},
@@ -224,7 +242,7 @@ static const __initconst struct of_device_id clk_div_match[] = {
 	{}
 };
 
-static void __init sunxi_divider_clock_setup(void)
+static void __init of_sunxi_divider_clock_setup(void)
 {
 	struct device_node *np;
 	const struct div_data *data;
@@ -237,19 +255,11 @@ static void __init sunxi_divider_clock_setup(void)
 	}
 }
 
-static const __initconst struct of_device_id clk_match[] = {
-	{.compatible = "fixed-clock", .data = of_fixed_clk_setup,},
-	{.compatible = "allwinner,sunxi-osc-clk", .data = sunxi_osc_clk_setup,},
-	{.compatible = "allwinner,sunxi-pll1-clk", .data = sunxi_pll1_clk_setup,},
-	{.compatible = "allwinner,sunxi-cpu-clk", .data = sunxi_cpu_clk_setup,},
-	{}
-};
-
 void __init sunxi_init_clocks(void)
 {
 	/* Register all the simple sunxi clocks on DT */
 	of_clk_init(clk_match);
 
 	/* Register divider clocks */
-	sunxi_divider_clock_setup();
+	of_sunxi_divider_clock_setup();
 }
