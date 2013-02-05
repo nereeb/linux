@@ -12,17 +12,16 @@
  *	(c) Copyright 2010 Novell, Inc.
  *
  * Known issues:
- * 	* Timer scale is not seconds. 0-23 seems to be in ~0.5s.
- * 	* Unsure if values above 23 actually fires, or if they fire
- * 	  what scale they represent.
- * 	* There is a small window while the watchdog is being reloded
- * 	  where there is no watchdog. If not tne watchdog apparently
- * 	  ignores the reload and happily continues where it was.
+ *	* Timer scale is not seconds. 0-23 seems to be in ~0.5s.
+ *	* Unsure if values above 23 actually fires, or if they fire
+ *	  what scale they represent.
+ *	* There is a small window while the watchdog is being reloded
+ *	  where there is no watchdog. If not tne watchdog apparently
+ *	  ignores the reload and happily continues where it was.
  */
 
 #define DRV_NAME	"sunxi_wdt"
 #define DRV_VERSION	"1.0"
-#define PFX		DRV_NAME ": "
 
 #include <linux/bug.h>
 #include <linux/errno.h>
@@ -53,8 +52,9 @@ static struct sunxi_watchdog_reg {
 #define SW_WDT_MODE_RESET (1 << 1)
 #define SW_WDT_MODE_TIMEOUT(n) (n << 2)
 
-#define WATCHDOG_TIMEOUT 23 /* in some unit / scale */
-#define MAX_TIMEOUT 23	    /* register fits ((1<<6)-1), but seems halted above 23 */
+/* register fits ((1<<6)-1), but seems halted above 23 */
+#define MAX_TIMEOUT		23
+#define WATCHDOG_TIMEOUT	23
 static unsigned int timeout = WATCHDOG_TIMEOUT;
 module_param(timeout, uint, S_IRUGO);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds "
@@ -82,7 +82,12 @@ static int sunxi_wdt_kick(void)
 
 static int sunxi_wdt_set_timeout(int timeout)
 {
-	writel(SW_WDT_MODE_TIMEOUT(timeout) | SW_WDT_MODE_RESET | SW_WDT_MODE_ENABLE, &wdt_reg->mode);
+	u32 newmode;
+
+	newmode = SW_WDT_MODE_TIMEOUT(timeout);
+	newmode |= SW_WDT_MODE_RESET;
+	newmode |= SW_WDT_MODE_ENABLE;
+	writel(newmode, &wdt_reg->mode);
 	sunxi_wdt_kick();
 	return 0;
 }
@@ -109,8 +114,7 @@ static int sunxi_wdt_release(struct inode *inode, struct file *file)
 	if (expect_release)
 		sunxi_wdt_stop();
 	else {
-		printk(KERN_CRIT PFX
-		       "unexpected close, not stopping watchdog!\n");
+		pr_crit(DRV_NAME ": unexpected close, not stopping watchdog!\n");
 		sunxi_wdt_kick();
 	}
 	is_active = false;
@@ -171,9 +175,8 @@ static long sunxi_wdt_ioctl(struct file *file, unsigned int cmd,
 			return -EFAULT;
 		if (new_options & WDIOS_DISABLECARD)
 			retval = sunxi_wdt_stop();
-		if (new_options & WDIOS_ENABLECARD) {
+		if (new_options & WDIOS_ENABLECARD)
 			retval = sunxi_wdt_start();
-		}
 		return retval;
 
 	case WDIOC_KEEPALIVE:
@@ -215,10 +218,10 @@ static int sunxi_wdt_probe(struct platform_device *pdev)
 	int ret;
 	struct resource *res;
 
-	if (!timeout || timeout > MAX_TIMEOUT ) {
+	if (!timeout || timeout > MAX_TIMEOUT) {
 		timeout = WATCHDOG_TIMEOUT;
-		printk(KERN_INFO PFX
-		       "timeout value invalid, using %d\n", timeout);
+		dev_info(&pdev->dev, "timeout value invalid, using %d\n",
+			 timeout);
 	}
 
 	/*
@@ -248,17 +251,16 @@ static int sunxi_wdt_probe(struct platform_device *pdev)
 
 	ret = misc_register(&sunxi_wdt_miscdev);
 	if (ret) {
-		printk(KERN_ERR PFX
-		       "cannot register miscdev on minor=%d (%d)\n",
-		       WATCHDOG_MINOR, ret);
+		dev_err(&pdev->dev, "cannot register miscdev on minor=%d (%d)\n",
+			WATCHDOG_MINOR, ret);
 		goto err_misc_register;
 	}
 
-	printk(KERN_INFO PFX
-	       "initialized (timeout=%ds, nowayout=%d)\n",
-	       timeout, nowayout);
+	dev_info(&pdev->dev, "initialized (timeout=%ds, nowayout=%d)\n",
+		 timeout, nowayout);
 
-	sunxi_wdt_kick(); /* give userspace a bit more time to settle if watchdog already running */
+	/* give userspace a bit of time to settle if watchdog already running */
+	sunxi_wdt_kick();
 
 	return ret;
 
