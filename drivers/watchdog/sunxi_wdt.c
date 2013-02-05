@@ -21,7 +21,7 @@
  */
 
 #define DRV_NAME	"sunxi_wdt"
-#define DRV_VERSION	"1.0"
+#define DRV_VERSION	"1.1"
 
 #include <linux/bug.h>
 #include <linux/errno.h>
