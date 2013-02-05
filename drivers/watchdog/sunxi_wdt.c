@@ -212,7 +212,7 @@ static struct miscdevice sunxi_wdt_miscdev = {
 	.fops =		&sunxi_wdt_fops,
 };
 
-static int __devinit sunxi_wdt_probe(struct platform_device *pdev)
+static int sunxi_wdt_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct resource *res;
@@ -273,7 +273,7 @@ err_get_resource:
 	return ret;
 }
 
-static int __devexit sunxi_wdt_remove(struct platform_device *pdev)
+static int sunxi_wdt_remove(struct platform_device *pdev)
 {
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
@@ -310,7 +310,7 @@ static int sunxi_wdt_resume(struct platform_device *dev)
 
 static struct platform_driver sunxi_wdt_driver = {
 	.probe          = sunxi_wdt_probe,
-	.remove         = __devexit_p(sunxi_wdt_remove),
+	.remove         = sunxi_wdt_remove,
 	.shutdown       = sunxi_wdt_shutdown,
 	.suspend        = sunxi_wdt_suspend,
 	.resume         = sunxi_wdt_resume,
