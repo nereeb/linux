@@ -67,11 +67,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
 
 static int sunxi_wdt_stop(void)
 {
-	int err = 0;
-
 	writel(0, &wdt_reg->mode);
-
-	return err;
+	return 0;
 }
 
 static int sunxi_wdt_kick(void)
