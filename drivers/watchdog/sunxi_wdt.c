@@ -46,11 +46,11 @@ static struct sunxi_watchdog_reg {
 	u32 reserved[2];
 } __iomem *wdt_reg;
 
-#define SW_WDT_CTRL_RELOAD ((0xA57 << 1) | (1 << 0))
+#define SW_WDT_CTRL_RELOAD	((0xA57 << 1) | (1 << 0))
 
-#define SW_WDT_MODE_ENABLE (1 << 0)
-#define SW_WDT_MODE_RESET (1 << 1)
-#define SW_WDT_MODE_TIMEOUT(n) (n << 2)
+#define SW_WDT_MODE_ENABLE	(1 << 0)
+#define SW_WDT_MODE_RESET	(1 << 1)
+#define SW_WDT_MODE_TIMEOUT(n)	(n << 2)
 
 /* register fits ((1<<6)-1), but seems halted above 23 */
 #define MAX_TIMEOUT		23
