@@ -38,9 +38,7 @@
 #include <linux/watchdog.h>
 #include <linux/delay.h>
 #include <linux/io.h>
-#include <mach/platform.h>
 
-static struct platform_device *platform_device;
 static bool is_active, expect_release;
 
 static struct sunxi_watchdog_reg {
@@ -308,6 +306,12 @@ static int sunxi_wdt_resume(struct platform_device *dev)
 		return 0;
 }
 
+static const struct of_device_id sunxi_wdt_of_match[] = {
+	{ .compatible = "allwinner,sunxi-wdt", },
+	{},
+};
+MODULE_DEVICE_TABLE(of, sunxi_wdt_of_match);
+
 static struct platform_driver sunxi_wdt_driver = {
 	.probe          = sunxi_wdt_probe,
 	.remove         = sunxi_wdt_remove,
@@ -317,46 +321,18 @@ static struct platform_driver sunxi_wdt_driver = {
 	.driver         = {
 		.owner  = THIS_MODULE,
 		.name   = DRV_NAME,
-	},
-};
-
-static struct resource sunxi_wdt_res[] = {
-	{
-		.start	= SW_PA_TIMERC_IO_BASE+0x90,
-		.end	= SW_PA_TIMERC_IO_BASE+0x90+0x10-1,
-		.flags	= IORESOURCE_MEM,
+		.of_match_table = sunxi_wdt_of_match,
 	},
 };
 
 static int __init sunxi_wdt_init_module(void)
 {
-	int err;
-
-	printk(KERN_INFO PFX "sunxi WatchDog Timer Driver v%s\n", DRV_VERSION);
-
-	err = platform_driver_register(&sunxi_wdt_driver);
-	if (err)
-		goto err_driver_register;
-
-	platform_device = platform_device_register_simple(DRV_NAME, -1, sunxi_wdt_res, ARRAY_SIZE(sunxi_wdt_res));
-	if (IS_ERR(platform_device)) {
-		err = PTR_ERR(platform_device);
-		goto err_platform_device;
-	}
-
-	return err;
-
-err_platform_device:
-	platform_driver_unregister(&sunxi_wdt_driver);
-err_driver_register:
-	return err;
+	return platform_driver_register(&sunxi_wdt_driver);
 }
 
 static void __exit sunxi_wdt_cleanup_module(void)
 {
-	platform_device_unregister(platform_device);
 	platform_driver_unregister(&sunxi_wdt_driver);
-	printk(KERN_INFO PFX "module unloaded\n");
 }
 
 module_init(sunxi_wdt_init_module);
