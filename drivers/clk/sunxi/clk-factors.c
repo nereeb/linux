@@ -34,7 +34,7 @@ struct clk_factors {
 	struct clk_hw hw;
 	void __iomem *reg;
 	struct clk_factors_config *config;
-	void (*get_factors) (u32 *rate, u8 *n, u8 *k, u8 *m, u8 *p);
+	void (*get_factors) (u32 *rate, u32 parent, u8 *n, u8 *k, u8 *m, u8 *p);
 	spinlock_t *lock;
 };
 
@@ -50,7 +50,7 @@ struct clk_factors {
 static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 					     unsigned long parent_rate)
 {
-	u8 n, k, p, m;
+	u8 n = 1, k = 0, p = 0, m = 0;
 	u32 reg;
 	unsigned long rate;
 	struct clk_factors *factors = to_clk_factors(hw);
@@ -59,11 +59,15 @@ static unsigned long clk_factors_recalc_rate(struct clk_hw *hw,
 	/* Fetch the register value */
 	reg = readl(factors->reg);
 
-	/* Get each individual factor */
-	n = FACTOR_GET(config->nshift, config->nwidth, reg);
-	k = FACTOR_GET(config->kshift, config->kwidth, reg);
-	m = FACTOR_GET(config->mshift, config->mwidth, reg);
-	p = FACTOR_GET(config->pshift, config->pwidth, reg);
+	/* Get each individual factor if applicable */
+	if (config->nwidth != SUNXI_FACTORS_NOT_APPLICABLE)
+		n = FACTOR_GET(config->nshift, config->nwidth, reg);
+	if (config->kwidth != SUNXI_FACTORS_NOT_APPLICABLE)
+		k = FACTOR_GET(config->kshift, config->kwidth, reg);
+	if (config->mwidth != SUNXI_FACTORS_NOT_APPLICABLE)
+		m = FACTOR_GET(config->mshift, config->mwidth, reg);
+	if (config->pwidth != SUNXI_FACTORS_NOT_APPLICABLE)
+		p = FACTOR_GET(config->pshift, config->pwidth, reg);
 
 	/* Calculate the rate */
 	rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
@@ -75,7 +79,8 @@ static long clk_factors_round_rate(struct clk_hw *hw, unsigned long rate,
 				   unsigned long *parent_rate)
 {
 	struct clk_factors *factors = to_clk_factors(hw);
-	factors->get_factors((u32 *)&rate, NULL, NULL, NULL, NULL);
+	factors->get_factors((u32 *)&rate, (u32)*parent_rate,
+			     NULL, NULL, NULL, NULL);
 
 	return rate;
 }
@@ -89,7 +94,7 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	struct clk_factors_config *config = factors->config;
 	unsigned long flags = 0;
 
-	factors->get_factors((u32 *)&rate, &n, &k, &m, &p);
+	factors->get_factors((u32 *)&rate, (u32)parent_rate, &n, &k, &m, &p);
 
 	if (factors->lock)
 		spin_lock_irqsave(factors->lock, flags);
@@ -97,7 +102,7 @@ static int clk_factors_set_rate(struct clk_hw *hw, unsigned long rate,
 	/* Fetch the register value */
 	reg = readl(factors->reg);
 
-	/* Set up the new factors */
+	/* Set up the new factors - macros do not do anything if width is 0 */
 	reg = FACTOR_SET(config->nshift, config->nwidth, reg, n);
 	reg = FACTOR_SET(config->kshift, config->kwidth, reg, k);
 	reg = FACTOR_SET(config->mshift, config->mwidth, reg, m);
@@ -137,8 +142,8 @@ struct clk *clk_register_factors(struct device *dev, const char *name,
 				 const char *parent_name,
 				 unsigned long flags, void __iomem *reg,
 				 struct clk_factors_config *config,
-				 void (*get_factors) (u32 *rate, u8 *n, u8 *k,
-						      u8 *m, u8 *p),
+				 void (*get_factors)(u32 *rate, u32 parent,
+						     u8 *n, u8 *k, u8 *m, u8 *p),
 				 spinlock_t *lock)
 {
 	struct clk_factors *factors;

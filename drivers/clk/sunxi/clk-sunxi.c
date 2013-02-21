@@ -59,7 +59,8 @@ static void __init sunxi_osc_clk_setup(struct device_node *node)
  * parent_rate is always 24Mhz
  */
 
-static void sunxi_get_pll1_factors(u32 *freq, u8 *n, u8 *k, u8 *m, u8 *p)
+static void sunxi_get_pll1_factors(u32 *freq, u32 parent_rate,
+				   u8 *n, u8 *k, u8 *m, u8 *p)
 {
 	u8 div;
 
@@ -106,8 +107,56 @@ static void sunxi_get_pll1_factors(u32 *freq, u8 *n, u8 *k, u8 *m, u8 *p)
 
 
 /**
- * sunxi_pll1_clk_setup() - Setup function for PLL1 clock
+ * sunxi_get_apb1_factors() - calculates m, p factors for APB1
+ * APB1 rate is calculated as follows
+ * rate = (parent_rate >> p) / (m + 1);
  */
+
+static void sunxi_get_apb1_factors(u32 *freq, u32 parent_rate,
+				   u8 *n, u8 *k, u8 *m, u8 *p)
+{
+	u8 calcm, calcp;
+
+	if (parent_rate < *freq)
+		*freq = parent_rate;
+
+	parent_rate = (parent_rate + (*freq - 1)) / *freq;
+
+	/* Invalid rate! */
+	if (parent_rate > 32)
+		return;
+
+	if (parent_rate <= 4)
+		calcp = 0;
+	else if (parent_rate <= 8)
+		calcp = 1;
+	else if (parent_rate <= 16)
+		calcp = 2;
+	else
+		calcp = 3;
+
+	calcm = (parent_rate >> calcp) - 1;
+
+	*freq = (parent_rate >> calcp) / (calcm + 1);
+
+	/* we were called to round the frequency, we can now return */
+	if (n == NULL)
+		return;
+
+	*m = calcm;
+	*p = calcp;
+}
+
+
+
+/**
+ * sunxi_factors_clk_setup() - Setup function for factor clocks
+ */
+
+struct factors_data {
+	struct clk_factors_config *table;
+	void (*getter) (u32 *rate, u32 parent_rate, u8 *n, u8 *k, u8 *m, u8 *p);
+};
 
 static struct clk_factors_config pll1_config = {
 	.nshift = 8,
@@ -120,7 +169,25 @@ static struct clk_factors_config pll1_config = {
 	.pwidth = 2,
 };
 
-static void __init sunxi_pll1_clk_setup(struct device_node *node)
+static struct clk_factors_config apb1_config = {
+	.mshift = 0,
+	.mwidth = 5,
+	.pshift = 16,
+	.pwidth = 2,
+};
+
+static const __initconst struct factors_data pll1_data = {
+	.table = &pll1_config,
+	.getter = sunxi_get_pll1_factors,
+};
+
+static const __initconst struct factors_data apb1_data = {
+	.table = &apb1_config,
+	.getter = sunxi_get_apb1_factors,
+};
+
+static void __init sunxi_factors_clk_setup(struct device_node *node,
+					   struct factors_data *data)
 {
 	struct clk *clk;
 	const char *clk_name = node->name;
@@ -132,8 +199,7 @@ static void __init sunxi_pll1_clk_setup(struct device_node *node)
 	parent = of_clk_get_parent_name(node, 0);
 
 	clk = clk_register_factors(NULL, clk_name, parent, CLK_IGNORE_UNUSED,
-				   reg, &pll1_config, sunxi_get_pll1_factors,
-				   &clk_lock);
+				   reg, data->table, data->getter, &clk_lock);
 
 	if (clk) {
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
@@ -157,7 +223,7 @@ static const __initconst struct mux_data cpu_data = {
 	.shift = 16,
 };
 
-static const __initconst struct mux_data apb1_data = {
+static const __initconst struct mux_data apb1_mux_data = {
 	.shift = 24,
 };
 
@@ -240,7 +306,13 @@ static void __init sunxi_divider_clk_setup(struct device_node *node,
 static const __initconst struct of_device_id clk_match[] = {
 	{.compatible = "fixed-clock", .data = of_fixed_clk_setup,},
 	{.compatible = "allwinner,sunxi-osc-clk", .data = sunxi_osc_clk_setup,},
-	{.compatible = "allwinner,sunxi-pll1-clk", .data = sunxi_pll1_clk_setup,},
+	{}
+};
+
+/* Matches for factors clocks */
+static const __initconst struct of_device_id clk_factors_match[] = {
+	{.compatible = "allwinner,sunxi-pll1-clk", .data = &pll1_data,},
+	{.compatible = "allwinner,sunxi-apb1-clk", .data = &apb1_data,},
 	{}
 };
 
@@ -255,7 +327,7 @@ static const __initconst struct of_device_id clk_div_match[] = {
 /* Matches for mux clocks */
 static const __initconst struct of_device_id clk_mux_match[] = {
 	{.compatible = "allwinner,sunxi-cpu-clk", .data = &cpu_data,},
-	{.compatible = "allwinner,sunxi-apb1-clk", .data = &apb1_data,},
+	{.compatible = "allwinner,sunxi-apb1-mux-clk", .data = &apb1_mux_data,},
 	{}
 };
 
@@ -278,6 +350,9 @@ void __init sunxi_init_clocks(void)
 {
 	/* Register all the simple sunxi clocks on DT */
 	of_clk_init(clk_match);
+
+	/* Register factor clocks */
+	of_sunxi_table_clock_setup(clk_factors_match, sunxi_factors_clk_setup);
 
 	/* Register divider clocks */
 	of_sunxi_table_clock_setup(clk_div_match, sunxi_divider_clk_setup);

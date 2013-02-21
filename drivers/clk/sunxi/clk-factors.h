@@ -4,6 +4,8 @@
 #include <linux/clk-provider.h>
 #include <linux/clkdev.h>
 
+#define SUNXI_FACTORS_NOT_APPLICABLE	(0)
+
 struct clk_factors_config {
 	u8 nshift;
 	u8 nwidth;
@@ -19,7 +21,7 @@ struct clk *clk_register_factors(struct device *dev, const char *name,
 				 const char *parent_name,
 				 unsigned long flags, void __iomem *reg,
 				 struct clk_factors_config *config,
-				 void (*get_factors) (u32 *rate, u8 *n, u8 *k,
-						      u8 *m, u8 *p),
+				 void (*get_factors) (u32 *rate, u32 parent_rate,
+						      u8 *n, u8 *k, u8 *m, u8 *p),
 				 spinlock_t *lock);
 #endif
