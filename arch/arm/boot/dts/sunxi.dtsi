@@ -27,6 +27,18 @@
 		#size-cells = <1>;
 		ranges;
 
+		/*
+		 * This is a dummy clock, to be used as placeholder on
+		 * other mux clocks when a specific parent clock is not
+		 * yet implemented. It should be dropped when the driver
+		 * is complete.
+		 */
+		dummy: dummy {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <0>;
+		};
+
 		osc24M_fixed: osc24M_fixed {
 			#clock-cells = <0>;
 			compatible = "fixed-clock";
@@ -53,11 +65,12 @@
 			clocks = <&osc24M>;
 		};
 
+		/* dummy is 200M */
 		cpu: cpu@01c20054 {
 			#clock-cells = <0>;
 			compatible = "allwinner,sunxi-cpu-clk";
 			reg = <0x01c20054 0x4>;
-			clocks = <&osc32k>, <&osc24M>, <&pll1>;
+			clocks = <&osc32k>, <&osc24M>, <&pll1>, <&dummy>;
 		};
 
 		axi: axi@01c20054 {
@@ -80,6 +93,15 @@
 			reg = <0x01c20054 0x4>;
 			clocks = <&ahb>;
 		};
+
+		/* dummy is pll62 */
+		apb1_mux: apb1_mux@01c20058 {
+			#clock-cells = <0>;
+			compatible = "allwinner,sunxi-apb1-clk";
+			reg = <0x01c20058 0x4>;
+			clocks = <&osc24M>, <&dummy>, <&osc32k>;
+		};
+
 	};
 
 	soc {
