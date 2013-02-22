@@ -10,15 +10,23 @@ Required properties:
 	"allwinner,sunxi-pll1-clk" - for the main PLL clock
 	"allwinner,sunxi-cpu-clk" - for the CPU multiplexer clock
 	"allwinner,sunxi-axi-clk" - for the sunxi AXI clock
+	"allwinner,sunxi-axi-gates-clk" - for the AXI gates
 	"allwinner,sunxi-ahb-clk" - for the sunxi AHB clock
+	"allwinner,sunxi-ahb-gates-clk" - for the AHB gates
 	"allwinner,sunxi-apb0-clk" - for the sunxi APB0 clock
+	"allwinner,sunxi-apb0-gates-clk" - for the APB0 gates
 	"allwinner,sunxi-apb1-clk" - for the sunxi APB1 clock
 	"allwinner,sunxi-apb1-mux-clk" - for the sunxi APB1 clock muxing
+	"allwinner,sunxi-apb1-gates-clk" - for the APB1 gates
 
 Required properties for all clocks:
 - reg : shall be the control register address for the clock.
 - clocks : shall be the input parent clock(s) phandle for the clock
-- #clock-cells : from common clock binding; shall be set to 0.
+- #clock-cells : from common clock binding; shall be set to 0 except for
+	"allwinner,sunxi-*-gates-clk" where it shall be set to 1
+
+Additionally, "allwinner,sunxi-*-gates-clk" clocks require:
+- clock-output-names : the corresponding gate names that the clock controls
 
 For example:
 
