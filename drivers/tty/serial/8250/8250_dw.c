@@ -26,6 +26,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/acpi.h>
+#include <linux/clk.h>
 
 #include "8250.h"
 
@@ -116,6 +117,7 @@ static int dw8250_handle_irq(struct uart_port *p)
 static int dw8250_probe_of(struct uart_port *p)
 {
 	struct device_node	*np = p->dev->of_node;
+	struct clk		*clk = NULL;
 	u32			val;
 
 	if (!of_property_read_u32(np, "reg-io-width", &val)) {
@@ -137,10 +139,19 @@ static int dw8250_probe_of(struct uart_port *p)
 		p->regshift = val;
 
 	if (of_property_read_u32(np, "clock-frequency", &val)) {
-		dev_err(p->dev, "no clock-frequency property set\n");
-		return -EINVAL;
+		/* Get clk rate through clk driver if present */
+		clk = clk_get(p->dev, NULL);
+		if (IS_ERR(clk)) {
+			dev_err(p->dev, "clk or clock-frequency not defined\n");
+			return -EINVAL;
+		}
+
+		clk_prepare_enable(clk);
+		val = clk_get_rate(clk);
 	}
 	p->uartclk = val;
+
+	dev_set_drvdata(p->dev, clk);
 
 	return 0;
 }
@@ -231,6 +242,8 @@ static int dw8250_probe_acpi(struct uart_port *p)
 		reg = readl(p->membase + LPSS_PRV_CLOCK_PARAMS);
 		writel(reg | 1, p->membase + LPSS_PRV_CLOCK_PARAMS);
 	}
+
+	dev_set_drvdata(p->dev, NULL);
 
 	return 0;
 }
@@ -330,8 +343,11 @@ static int dw8250_probe(struct platform_device *pdev)
 static int dw8250_remove(struct platform_device *pdev)
 {
 	struct dw8250_data *data = platform_get_drvdata(pdev);
+	struct clk *clk = dev_get_drvdata(&pdev->dev);
 
 	serial8250_unregister_port(data->line);
+
+	clk_disable_unprepare(clk);
 
 	return 0;
 }
