@@ -26,6 +26,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/acpi.h>
+#include <linux/clk.h>
 
 #include "8250.h"
 
@@ -55,8 +56,9 @@
 
 
 struct dw8250_data {
-	int	last_lcr;
-	int	line;
+	int		last_lcr;
+	int		line;
+	struct clk	*clk;
 };
 
 static void dw8250_serial_out(struct uart_port *p, int offset, int value)
@@ -116,6 +118,7 @@ static int dw8250_handle_irq(struct uart_port *p)
 static int dw8250_probe_of(struct uart_port *p)
 {
 	struct device_node	*np = p->dev->of_node;
+	struct dw8250_data	*data = p->private_data;
 	u32			val;
 
 	if (!of_property_read_u32(np, "reg-io-width", &val)) {
@@ -137,8 +140,15 @@ static int dw8250_probe_of(struct uart_port *p)
 		p->regshift = val;
 
 	if (of_property_read_u32(np, "clock-frequency", &val)) {
-		dev_err(p->dev, "no clock-frequency property set\n");
-		return -EINVAL;
+		/* Get clk rate through clk driver if present */
+		data->clk = clk_get(p->dev, NULL);
+		if (IS_ERR(data->clk)) {
+			dev_err(p->dev, "clk or clock-frequency not defined\n");
+			return -EINVAL;
+		}
+
+		clk_prepare_enable(data->clk);
+		val = clk_get_rate(data->clk);
 	}
 	p->uartclk = val;
 
@@ -300,6 +310,12 @@ static int dw8250_probe(struct platform_device *pdev)
 
 	dw8250_setup_port(&uart);
 
+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+	if (!data)
+		return -ENOMEM;
+
+	uart.port.private_data = data;
+
 	if (pdev->dev.of_node) {
 		err = dw8250_probe_of(&uart.port);
 		if (err)
@@ -311,12 +327,6 @@ static int dw8250_probe(struct platform_device *pdev)
 	} else {
 		return -ENODEV;
 	}
-
-	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
-
-	uart.port.private_data = data;
 
 	data->line = serial8250_register_8250_port(&uart);
 	if (data->line < 0)
@@ -332,6 +342,8 @@ static int dw8250_remove(struct platform_device *pdev)
 	struct dw8250_data *data = platform_get_drvdata(pdev);
 
 	serial8250_unregister_port(data->line);
+
+	clk_disable_unprepare(data->clk);
 
 	return 0;
 }
