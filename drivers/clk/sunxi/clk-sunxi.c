@@ -361,7 +361,7 @@ static void __init sunxi_gates_clk_setup(struct device_node *node,
 		/* No driver claims this clock, but it should remain gated */
 		ignore = !strcmp("ahb_sdram", clk_name) ? CLK_IGNORE_UNUSED : 0;
 
-		clk_data->clks[j] = clk_register_gate(NULL, clk_name,
+		clk_data->clks[i] = clk_register_gate(NULL, clk_name,
 						      clk_parent, ignore,
 						      reg + 4 * (i/32), i % 32,
 						      0, &clk_lock);
@@ -371,7 +371,7 @@ static void __init sunxi_gates_clk_setup(struct device_node *node,
 	}
 
 	/* Adjust to the real max */
-	clk_data->clk_num = j;
+	clk_data->clk_num = i;
 
 	of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
 }
