@@ -50,3 +50,101 @@ cpu: cpu@01c20054 {
 	reg = <0x01c20054 0x4>;
 	clocks = <&osc32k>, <&osc24M>, <&pll1>;
 };
+
+
+
+Gate clock outputs
+
+The "allwinner,sunxi-*-gates-clk" clocks provide several gatable outputs;
+their corresponding offsets are listed below:
+
+  * AXI gates ("allwinner,sunxi-axi-gates-clk")
+
+    DRAM                                                                0
+
+  * AHB gates ("allwinner,sunxi-ahb-gates-clk")
+
+    USB0                                                                0
+    EHCI0                                                               1
+    OHCI0                                                               2*
+    EHCI1                                                               3
+    OHCI1                                                               4*
+    SS                                                                  5
+    DMA                                                                 6
+    BIST                                                                7
+    MMC0                                                                8
+    MMC1                                                                9
+    MMC2                                                                10
+    MMC3                                                                11
+    MS                                                                  12**
+    NAND                                                                13
+    SDRAM                                                               14
+
+    ACE                                                                 16
+    EMAC                                                                17
+    TS                                                                  18
+
+    SPI0                                                                20
+    SPI1                                                                21
+    SPI2                                                                22
+    SPI3                                                                23
+    PATA                                                                24
+    SATA                                                                25**
+    GPS                                                                 26*
+
+    VE                                                                  32
+    TVD                                                                 33
+    TVE0                                                                34
+    TVE1                                                                35
+    LCD0                                                                36
+    LCD1                                                                37
+
+    CSI0                                                                40
+    CSI1                                                                41
+
+    HDMI                                                                43
+    DE_BE0                                                              44
+    DE_BE1                                                              45
+    DE_FE0                                                              46
+    DE_FE1                                                              47
+
+    MP                                                                  50
+
+    MALI400                                                             52
+
+  * APB0 gates ("allwinner,sunxi-apb0-gates-clk")
+
+    CODEC                                                               0
+    SPDIF                                                               1*
+    AC97                                                                2
+    IIS                                                                 3
+
+    PIO                                                                 5
+    IR0                                                                 6
+    IR1                                                                 7
+
+    KEYPAD                                                              10
+
+  * APB1 gates ("allwinner,sunxi-apb1-gates-clk")
+
+    TWI0                                                                0
+    TWI1                                                                1
+    TWI2                                                                2
+
+    CAN                                                                 4
+    SCR                                                                 5
+    PS20                                                                6
+    PS21                                                                7
+
+    UART0                                                               16
+    UART1                                                               17
+    UART2                                                               18
+    UART3                                                               19
+    UART4                                                               20
+    UART5                                                               21
+    UART6                                                               22
+    UART7                                                               23
+
+Notation:
+ [*]:  The datasheet didn't mention these, but they are present on AW code
+ [**]: The datasheet had this marked as "NC" but they are used on AW code
