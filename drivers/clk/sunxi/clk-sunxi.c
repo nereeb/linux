@@ -73,13 +73,13 @@ static void __init sunxi_osc_clk_setup(struct device_node *node)
 
 
 /**
- * sunxi_get_pll1_factors() - calculates n, k, m, p factors for PLL1
+ * sunxi_get_pll_factors() - calculates n, k, m, p factors for PLL1
  * PLL1 rate is calculated as follows
  * rate = (parent_rate * n * (k + 1) >> p) / (m + 1);
  * parent_rate is always 24Mhz
  */
 
-static void sunxi_get_pll1_factors(u32 *freq, u32 parent_rate,
+static void sunxi_get_pll_factors(u32 *freq, u32 parent_rate,
 				   u8 *n, u8 *k, u8 *m, u8 *p)
 {
 	u8 div;
@@ -179,7 +179,7 @@ struct factors_data {
 	void (*getter) (u32 *rate, u32 parent_rate, u8 *n, u8 *k, u8 *m, u8 *p);
 };
 
-static struct clk_factors_config pll1_config = {
+static struct clk_factors_config pll_config = {
 	.nshift = 8,
 	.nwidth = 5,
 	.kshift = 4,
@@ -198,8 +198,14 @@ static struct clk_factors_config apb1_config = {
 };
 
 static const __initconst struct factors_data pll1_data = {
-	.table = &pll1_config,
-	.getter = sunxi_get_pll1_factors,
+	.table = &pll_config,
+	.getter = sunxi_get_pll_factors,
+};
+
+static const __initconst struct factors_data pll4_data = {
+	.enable = 31,
+	.table = &pll_config,
+	.getter = sunxi_get_pll_factors,
 };
 
 static const __initconst struct factors_data apb1_data = {
@@ -441,6 +447,7 @@ static const __initconst struct of_device_id clk_match[] = {
 /* Matches for factors clocks */
 static const __initconst struct of_device_id clk_factors_match[] = {
 	{.compatible = "allwinner,sun4i-pll1-clk", .data = &pll1_data,},
+	{.compatible = "allwinner,sun4i-pll4-clk", .data = &pll4_data,},
 	{.compatible = "allwinner,sun4i-apb1-clk", .data = &apb1_data,},
 	{}
 };
