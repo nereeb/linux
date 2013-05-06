@@ -293,11 +293,13 @@ static struct clk_factors_config sun4i_apb1_config = {
 };
 
 static const __initconst struct factors_data sun4i_pll1_data = {
+	.enable = 31,
 	.table = &sun4i_pll1_config,
 	.getter = sun4i_get_pll1_factors,
 };
 
 static const __initconst struct factors_data sun6i_pll1_data = {
+	.enable = 31,
 	.table = &sun6i_pll1_config,
 	.getter = sun6i_get_pll1_factors,
 };
