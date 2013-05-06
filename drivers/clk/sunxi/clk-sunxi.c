@@ -201,6 +201,7 @@ static struct clk_factors_config apb1_config = {
 };
 
 static const __initconst struct factors_data pll1_data = {
+	.enable = 31,
 	.table = &pll1_config,
 	.getter = sunxi_get_pll1_factors,
 };
