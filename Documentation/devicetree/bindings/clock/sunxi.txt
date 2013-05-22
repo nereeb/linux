@@ -23,6 +23,7 @@ Required properties:
 	"allwinner,sun4i-apb1-mux-clk" - for the APB1 clock muxing
 	"allwinner,sun4i-apb1-gates-clk" - for the APB1 gates on A10
 	"allwinner,sun5i-a13-apb1-gates-clk" - for the APB1 gates on A13
+	"allwinner,sun4i-mod0-clk" - for the module 0 family of clocks
 
 Required properties for all clocks:
 - reg : shall be the control register address for the clock.
