@@ -8,6 +8,8 @@ Required properties:
 - compatible : shall be one of the following:
 	"allwinner,sun4i-osc-clk" - for a gatable oscillator
 	"allwinner,sun4i-pll1-clk" - for the main PLL clock as well as PLL4
+	"allwinner,sun4i-pll5-clk" - for the PLL5 clock
+	"allwinner,sun4i-pll6-clk" - for the PLL6 clock
 	"allwinner,sun4i-cpu-clk" - for the CPU multiplexer clock
 	"allwinner,sun4i-axi-clk" - for the AXI clock
 	"allwinner,sun4i-axi-gates-clk" - for the AXI gates
