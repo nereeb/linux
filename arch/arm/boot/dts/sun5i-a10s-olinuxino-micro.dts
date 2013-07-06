@@ -49,6 +49,12 @@
 			status = "okay";
 		};
 
+		uart1: serial@01c28400 {
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart1_pins_a>;
+			status = "okay";
+		};
+
 		uart2: serial@01c28800 {
 			pinctrl-names = "default";
 			pinctrl-0 = <&uart2_pins_a>;
