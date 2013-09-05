@@ -229,14 +229,16 @@ static void sun4i_get_pll5_factors(u32 *freq, u32 parent_rate,
 	if (n == NULL)
 		return;
 
-	if (*freq < 480000000)
+	if (div < 31)
 		*k = 0;
-	else if (*freq < 960000000)
+	else if (div / 2 < 31)
 		*k = 1;
+	else if (div / 3 < 31)
+		*k = 2;
 	else
 		*k = 3;
 
-	*n = DIV_ROUND_UP(*freq, ((*k+1) * 24000000));
+	*n = DIV_ROUND_UP(div, (*k+1));
 }
 
 
@@ -793,20 +795,19 @@ static void __init sunxi_divs_clk_setup(struct device_node *node,
 
 		if (data->div[i].fixed) {
 			clks[i] = clk_register_fixed_factor(NULL, clk_name,
-							    parent, 0, 1,
-							    data->div[i].fixed);
+						parent, CLK_SET_RATE_PARENT,
+						1, data->div[i].fixed);
 		} else {
 			flags = data->div[i].pow ? CLK_DIVIDER_POWER_OF_TWO : 0;
 			clks[i] = clk_register_divider_table(NULL, clk_name,
-							     parent, 0, reg,
-							     data->div[i].shift,
-							     SUNXI_DIVISOR_WIDTH,
-							     flags,
-							     data->div[i].table,
-							     &clk_lock);
+						parent, CLK_SET_RATE_PARENT,
+						reg, data->div[i].shift,
+						SUNXI_DIVISOR_WIDTH, flags,
+						data->div[i].table, &clk_lock);
 		}
 
 		WARN_ON(IS_ERR(clk_data->clks[i]));
+		clk_register_clkdev(clks[i], clk_name, NULL);
 	}
 
 	/* Adjust to the real max */
