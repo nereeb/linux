@@ -550,9 +550,6 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 	factors->get_factors = data->getter;
 	factors->lock = &clk_lock;
 
-	/* We should not disable pll5, it powers the RAM */
-	flags = !strcmp("pll5", clk_name) ? CLK_IGNORE_UNUSED : 0;
-
 	clk = clk_register_composite(NULL, clk_name,
 			parents, i,
 			mux_hw, &clk_mux_ops,
