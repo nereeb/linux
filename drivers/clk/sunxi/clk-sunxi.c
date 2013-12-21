@@ -23,6 +23,9 @@
 
 static DEFINE_SPINLOCK(clk_lock);
 
+/* Maximum number of parents our clocks have */
+#define SUNXI_MAX_PARENTS	5
+
 /**
  * sun4i_osc_clk_setup() - Setup function for gatable oscillator
  */
@@ -493,7 +496,7 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 	struct clk_hw *gate_hw = NULL;
 	struct clk_hw *mux_hw = NULL;
 	const char *clk_name = node->name;
-	const char *parents[5];
+	const char *parents[SUNXI_MAX_PARENTS];
 	void *reg;
 	unsigned long flags;
 	int i = 0;
@@ -501,7 +504,8 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 	reg = of_iomap(node, 0);
 
 	/* if we have a mux, we will have >1 parents */
-	while (i < 5 && (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
+	while (i < SUNXI_MAX_PARENTS &&
+	       (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
 		i++;
 
 	factors = kzalloc(sizeof(struct clk_factors), GFP_KERNEL);
