@@ -498,7 +498,6 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 	const char *clk_name = node->name;
 	const char *parents[SUNXI_MAX_PARENTS];
 	void *reg;
-	unsigned long flags;
 	int i = 0;
 
 	reg = of_iomap(node, 0);
@@ -563,7 +562,7 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 			parents, i,
 			mux_hw, &clk_mux_ops,
 			&factors->hw, &clk_factors_ops,
-			gate_hw, &clk_gate_ops, flags);
+			gate_hw, &clk_gate_ops, 0);
 
 	if (!IS_ERR(clk)) {
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
