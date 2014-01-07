@@ -15,4 +15,10 @@ struct div_data;
 void __init sunxi_divider_clk_setup(struct device_node *node,
 				    struct div_data *data);
 extern const struct of_device_id clk_div_match[] __initconst;
+
+/* Gate clocks */
+struct gates_data;
+void __init sunxi_gates_clk_setup(struct device_node *node,
+				  struct gates_data *data);
+extern const struct of_device_id clk_gates_match[] __initconst;
 #endif
