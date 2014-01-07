@@ -32,23 +32,23 @@ struct gates_data {
 };
 
 static const struct gates_data sun4i_axi_gates_data __initconst = {
-	.mask = {1},
+	.mask = { 1 },
 };
 
 static const struct gates_data sun4i_ahb_gates_data __initconst = {
-	.mask = {0x7F77FFF, 0x14FB3F},
+	.mask = { 0x7f77fff, 0x14fb3f },
 };
 
 static const struct gates_data sun5i_a10s_ahb_gates_data __initconst = {
-	.mask = {0x147667e7, 0x185915},
+	.mask = { 0x147667e7, 0x185915 },
 };
 
 static const struct gates_data sun5i_a13_ahb_gates_data __initconst = {
-	.mask = {0x107067e7, 0x185111},
+	.mask = { 0x107067e7, 0x185111 },
 };
 
 static const struct gates_data sun6i_a31_ahb1_gates_data __initconst = {
-	.mask = {0xEDFE7F62, 0x794F931},
+	.mask = { 0xedfe7f62, 0x794f931 },
 };
 
 static const struct gates_data sun7i_a20_ahb_gates_data __initconst = {
@@ -56,15 +56,15 @@ static const struct gates_data sun7i_a20_ahb_gates_data __initconst = {
 };
 
 static const struct gates_data sun4i_apb0_gates_data __initconst = {
-	.mask = {0x4EF},
+	.mask = { 0x4ef },
 };
 
 static const struct gates_data sun5i_a10s_apb0_gates_data __initconst = {
-	.mask = {0x469},
+	.mask = { 0x469 },
 };
 
 static const struct gates_data sun5i_a13_apb0_gates_data __initconst = {
-	.mask = {0x61},
+	.mask = { 0x61 },
 };
 
 static const struct gates_data sun7i_a20_apb0_gates_data __initconst = {
@@ -72,23 +72,23 @@ static const struct gates_data sun7i_a20_apb0_gates_data __initconst = {
 };
 
 static const struct gates_data sun4i_apb1_gates_data __initconst = {
-	.mask = {0xFF00F7},
+	.mask = { 0xff00f7 },
 };
 
 static const struct gates_data sun5i_a10s_apb1_gates_data __initconst = {
-	.mask = {0xf0007},
+	.mask = { 0xf0007 },
 };
 
 static const struct gates_data sun5i_a13_apb1_gates_data __initconst = {
-	.mask = {0xa0007},
+	.mask = { 0xa0007 },
 };
 
 static const struct gates_data sun6i_a31_apb1_gates_data __initconst = {
-	.mask = {0x3031},
+	.mask = { 0x3031 },
 };
 
 static const struct gates_data sun6i_a31_apb2_gates_data __initconst = {
-	.mask = {0x3F000F},
+	.mask = { 0x3f000f },
 };
 
 static const struct gates_data sun7i_a20_apb1_gates_data __initconst = {
