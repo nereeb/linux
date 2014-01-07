@@ -117,7 +117,7 @@ void __init sunxi_gates_clk_setup(struct device_node *node,
 
 	/* Worst-case size approximation and memory allocation */
 	qty = find_last_bit(data->mask, SUNXI_GATES_MAX_SIZE);
-	clk_data = kmalloc(sizeof(struct clk_onecell_data), GFP_KERNEL);
+	clk_data = kmalloc(sizeof(*clk_data), GFP_KERNEL);
 	if (!clk_data)
 		return;
 	clk_data->clks = kzalloc((qty+1) * sizeof(struct clk *), GFP_KERNEL);
