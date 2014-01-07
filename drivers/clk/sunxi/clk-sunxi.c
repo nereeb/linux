@@ -20,11 +20,9 @@
 #include <linux/of_address.h>
 
 #include "clk-factors.h"
+#include "clk-sunxi.h"
 
 static DEFINE_SPINLOCK(clk_lock);
-
-/* Maximum number of parents our clocks have */
-#define SUNXI_MAX_PARENTS	5
 
 /**
  * sun4i_get_pll1_factors() - calculates n, k, m, p factors for PLL1
@@ -510,56 +508,6 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 
 
 /**
- * sunxi_mux_clk_setup() - Setup function for muxes
- */
-
-#define SUNXI_MUX_GATE_WIDTH	2
-
-struct mux_data {
-	u8 shift;
-};
-
-static const struct mux_data sun4i_cpu_mux_data __initconst = {
-	.shift = 16,
-};
-
-static const struct mux_data sun6i_a31_ahb1_mux_data __initconst = {
-	.shift = 12,
-};
-
-static const struct mux_data sun4i_apb1_mux_data __initconst = {
-	.shift = 24,
-};
-
-static void __init sunxi_mux_clk_setup(struct device_node *node,
-				       struct mux_data *data)
-{
-	struct clk *clk;
-	const char *clk_name = node->name;
-	const char *parents[SUNXI_MAX_PARENTS];
-	void *reg;
-	int i = 0;
-
-	reg = of_iomap(node, 0);
-
-	while (i < SUNXI_MAX_PARENTS &&
-	       (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
-		i++;
-
-	clk = clk_register_mux(NULL, clk_name, parents, i,
-			       CLK_SET_RATE_NO_REPARENT, reg,
-			       data->shift, SUNXI_MUX_GATE_WIDTH,
-			       0, &clk_lock);
-
-	if (clk) {
-		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
-}
-
-
-
-/**
  * sunxi_divider_clk_setup() - Setup function for simple divider clocks
  */
 
@@ -936,14 +884,6 @@ static const struct of_device_id clk_div_match[] __initconst = {
 static const struct of_device_id clk_divs_match[] __initconst = {
 	{.compatible = "allwinner,sun4i-pll5-clk", .data = &pll5_divs_data,},
 	{.compatible = "allwinner,sun4i-pll6-clk", .data = &pll6_divs_data,},
-	{}
-};
-
-/* Matches for mux clocks */
-static const struct of_device_id clk_mux_match[] __initconst = {
-	{.compatible = "allwinner,sun4i-cpu-clk", .data = &sun4i_cpu_mux_data,},
-	{.compatible = "allwinner,sun4i-apb1-mux-clk", .data = &sun4i_apb1_mux_data,},
-	{.compatible = "allwinner,sun6i-a31-ahb1-mux-clk", .data = &sun6i_a31_ahb1_mux_data,},
 	{}
 };
 
