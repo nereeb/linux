@@ -21,7 +21,7 @@
 static DEFINE_SPINLOCK(clk_lock);
 
 /**
- * sunxi_divider_clk_setup() - Setup function for simple divider clocks
+ * sunxi_divider_clk_setup() helper data
  */
 
 struct div_data {
@@ -53,6 +53,10 @@ static const struct div_data sun6i_a31_apb2_div_data __initconst = {
 	.pow	= 0,
 	.width	= 4,
 };
+
+/**
+ * sunxi_divider_clk_setup() - Setup function for simple divider clocks
+ */
 
 void __init sunxi_divider_clk_setup(struct device_node *node,
 				    struct div_data *data)
