@@ -508,64 +508,6 @@ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
 
 
 /**
- * sunxi_divider_clk_setup() - Setup function for simple divider clocks
- */
-
-struct div_data {
-	u8	shift;
-	u8	pow;
-	u8	width;
-};
-
-static const struct div_data sun4i_axi_data __initconst = {
-	.shift	= 0,
-	.pow	= 0,
-	.width	= 2,
-};
-
-static const struct div_data sun4i_ahb_data __initconst = {
-	.shift	= 4,
-	.pow	= 1,
-	.width	= 2,
-};
-
-static const struct div_data sun4i_apb0_data __initconst = {
-	.shift	= 8,
-	.pow	= 1,
-	.width	= 2,
-};
-
-static const struct div_data sun6i_a31_apb2_div_data __initconst = {
-	.shift	= 0,
-	.pow	= 0,
-	.width	= 4,
-};
-
-static void __init sunxi_divider_clk_setup(struct device_node *node,
-					   struct div_data *data)
-{
-	struct clk *clk;
-	const char *clk_name = node->name;
-	const char *clk_parent;
-	void *reg;
-
-	reg = of_iomap(node, 0);
-
-	clk_parent = of_clk_get_parent_name(node, 0);
-
-	clk = clk_register_divider(NULL, clk_name, clk_parent, 0,
-				   reg, data->shift, data->width,
-				   data->pow ? CLK_DIVIDER_POWER_OF_TWO : 0,
-				   &clk_lock);
-	if (clk) {
-		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
-}
-
-
-
-/**
  * sunxi_gates_clk_setup() - Setup function for leaf gates on clocks
  */
 
@@ -868,15 +810,6 @@ static const struct of_device_id clk_factors_match[] __initconst = {
 	{.compatible = "allwinner,sun4i-apb1-clk", .data = &sun4i_apb1_data,},
 	{.compatible = "allwinner,sun4i-mod0-clk", .data = &sun4i_mod0_data,},
 	{.compatible = "allwinner,sun7i-a20-out-clk", .data = &sun7i_a20_out_data,},
-	{}
-};
-
-/* Matches for divider clocks */
-static const struct of_device_id clk_div_match[] __initconst = {
-	{.compatible = "allwinner,sun4i-axi-clk", .data = &sun4i_axi_data,},
-	{.compatible = "allwinner,sun4i-ahb-clk", .data = &sun4i_ahb_data,},
-	{.compatible = "allwinner,sun4i-apb0-clk", .data = &sun4i_apb0_data,},
-	{.compatible = "allwinner,sun6i-a31-apb2-div-clk", .data = &sun6i_a31_apb2_div_data,},
 	{}
 };
 
