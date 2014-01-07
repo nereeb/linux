@@ -15,7 +15,6 @@
  */
 
 #include <linux/clk-provider.h>
-#include <linux/clkdev.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 
@@ -66,10 +65,8 @@ void __init sunxi_mux_clk_setup(struct device_node *node,
 			       data->shift, SUNXI_MUX_GATE_WIDTH,
 			       0, &clk_lock);
 
-	if (clk) {
+	if (clk)
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
 }
 
 /* Matches for mux clocks */
