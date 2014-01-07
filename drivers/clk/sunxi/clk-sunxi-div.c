@@ -15,7 +15,6 @@
  */
 
 #include <linux/clk-provider.h>
-#include <linux/clkdev.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 
@@ -71,10 +70,8 @@ void __init sunxi_divider_clk_setup(struct device_node *node,
 				   reg, data->shift, data->width,
 				   data->pow ? CLK_DIVIDER_POWER_OF_TWO : 0,
 				   &clk_lock);
-	if (clk) {
+	if (clk)
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-		clk_register_clkdev(clk, clk_name, NULL);
-	}
 }
 
 /* Matches for divider clocks */
