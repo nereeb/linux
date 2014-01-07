@@ -22,9 +22,8 @@
 
 static DEFINE_SPINLOCK(clk_lock);
 
-
 /**
- * sunxi_mux_clk_setup() - Setup function for muxes
+ * sunxi_mux_clk_setup() helper data
  */
 
 #define SUNXI_MUX_GATE_WIDTH	2
@@ -44,6 +43,10 @@ static const struct mux_data sun6i_a31_ahb1_mux_data __initconst = {
 static const struct mux_data sun4i_apb1_mux_data __initconst = {
 	.shift = 24,
 };
+
+/**
+ * sunxi_mux_clk_setup() - Setup function for muxes
+ */
 
 void __init sunxi_mux_clk_setup(struct device_node *node,
 				struct mux_data *data)
