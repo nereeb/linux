@@ -22,7 +22,7 @@
 static DEFINE_SPINLOCK(clk_lock);
 
 /**
- * sunxi_gates_clk_setup() - Setup function for leaf gates on clocks
+ * sunxi_gates_clk_setup() helper data
  */
 
 #define SUNXI_GATES_MAX_SIZE	64
@@ -94,6 +94,10 @@ static const struct gates_data sun6i_a31_apb2_gates_data __initconst = {
 static const struct gates_data sun7i_a20_apb1_gates_data __initconst = {
 	.mask = { 0xff80ff },
 };
+
+/**
+ * sunxi_gates_clk_setup() - Setup function for leaf gates on clocks
+ */
 
 void __init sunxi_gates_clk_setup(struct device_node *node,
 				  struct gates_data *data)
