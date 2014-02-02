@@ -261,6 +261,15 @@
 			clock-output-names = "ir0";
 		};
 
+		dram_gates: clk@01c20100 {
+			#clock-cells = <1>;
+			compatible = "allwinner,sun5i-a13-dram-gates-clk";
+			reg = <0x01c20100 0x4>;
+			clocks = <&pll5 0>;
+			clock-output-names = "dram_iep", "dram_ace",
+				"dram_be", "dram_fe", "dram_csi", "dram_ve";
+		};
+
 		mbus_clk: clk@01c2015c {
 			#clock-cells = <0>;
 			compatible = "allwinner,sun4i-mod0-clk";
