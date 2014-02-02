@@ -297,6 +297,18 @@
 			clock-output-names = "spi3";
 		};
 
+		dram_gates: clk@01c20100 {
+			#clock-cells = <1>;
+			compatible = "allwinner,sun4i-dram-gates-clk";
+			reg = <0x01c20100 0x4>;
+			clocks = <&pll5 0>;
+			clock-output-names = "dram_ace", "dram_de_mp",
+				"dram_be1", "dram_be0",	"dram_fe0",
+				"dram_fe1", "dram_out", "dram_tve1",
+				"dram_tve0", "dram_tvd", "dram_ts",
+				"dram_csi1", "dram_csi0", "dram_ve";
+		};
+
 		mbus_clk: clk@01c2015c {
 			#clock-cells = <0>;
 			compatible = "allwinner,sun4i-mod0-clk";
