@@ -231,6 +231,11 @@ static void sun4i_get_pll5_factors(u32 *freq, u32 parent_rate,
 {
 	u8 div;
 
+	/* These clocks can only multiply, so we will never be able to
+	 * achieve frequencies lower than the parent frequency */
+	if (WARN_ON(*freq < parent_rate))
+		*freq = parent_rate;
+
 	/* Normalize value to a parent_rate multiple (24M) */
 	div = *freq / parent_rate;
 	*freq = parent_rate * div;
@@ -264,7 +269,7 @@ static void sun5i_a13_get_ahb_factors(u32 *freq, u32 parent_rate,
 
 	/* This clock can only divide, so we will never achieve a higher
 	 * rate than the parent's */
-	if (*freq > parent_rate)
+	if (WARN_ON(*freq > parent_rate))
 		*freq = parent_rate;
 
 	/* Normalize value to a parent multiple */
@@ -289,13 +294,15 @@ static void sun4i_get_apb1_factors(u32 *freq, u32 parent_rate,
 {
 	u8 calcm, calcp;
 
-	if (parent_rate < *freq)
+	/* This clock can only divide, so we will never achieve a higher
+	 * rate than the parent's */
+	if (WARN_ON(*freq > parent_rate))
 		*freq = parent_rate;
 
 	parent_rate = DIV_ROUND_UP(parent_rate, *freq);
 
 	/* Invalid rate! */
-	if (parent_rate > 32)
+	if (WARN_ON(parent_rate > 32))
 		return;
 
 	if (parent_rate <= 4)
@@ -334,7 +341,7 @@ static void sun4i_get_mod0_factors(u32 *freq, u32 parent_rate,
 
 	/* These clocks can only divide, so we will never be able to achieve
 	 * frequencies higher than the parent frequency */
-	if (*freq > parent_rate)
+	if (WARN_ON(*freq > parent_rate))
 		*freq = parent_rate;
 
 	div = DIV_ROUND_UP(parent_rate, *freq);
@@ -375,7 +382,7 @@ static void sun7i_a20_get_out_factors(u32 *freq, u32 parent_rate,
 
 	/* These clocks can only divide, so we will never be able to achieve
 	 * frequencies higher than the parent frequency */
-	if (*freq > parent_rate)
+	if (WARN_ON(*freq > parent_rate))
 		*freq = parent_rate;
 
 	div = DIV_ROUND_UP(parent_rate, *freq);
